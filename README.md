@@ -50,7 +50,7 @@ flowchart LR
 5. CLIENT01, `corp.local` domain'ine katıldı ve `Test-ComputerSecureChannel -Verbose` ile kriptografik olarak doğrulandı (`True`)
 6. Geçici RDP/NSG kuralları kaldırıldı, tüm erişim Tailscale üzerinden sağlandı
 
-## Kurulum kanıtları
+## Kurulum 
 
 **AD DS kurulum öncesi ön koşul kontrolü.** İki uyarı çıktı: biri Windows NT 4.0 uyumlu zayıf şifreleme algoritmalarının varsayılan olarak kapalı olduğunu söylüyor (bu iyi bir şey, dokunmadım), diğeri ağ arayüzünde sabit IP olmadığından şikâyet ediyor. İkincisi Azure'da beklenen bir uyarı — bulutta IP adresi işletim sistemi içinden değil, Azure NIC ayarlarından sabitleniyor.
 
