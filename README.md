@@ -4,7 +4,7 @@
 
 ---
 
-## Bu lab ne kanıtlıyor?
+## 🇹🇷 Bu lab ne kanıtlıyor?
 
 Bu repo, gerçek bir BT destek / sistem yönetimi ortamının küçük ölçekli bir simülasyonu: bulutta bir domain controller, yerelde domain'e katılmış bir istemci, aralarında güvenli (public RDP'siz) bir bağlantı ve bunları kurarken karşılaşılan gerçek hataların adım adım kaydı.
 
@@ -50,17 +50,27 @@ flowchart LR
 5. CLIENT01, `corp.local` domain'ine katıldı ve `Test-ComputerSecureChannel -Verbose` ile kriptografik olarak doğrulandı (`True`)
 6. Geçici RDP/NSG kuralları kaldırıldı, tüm erişim Tailscale üzerinden sağlandı
 
+## Kurulum kanıtları
+
+**AD DS kurulum öncesi ön koşul kontrolü.** İki uyarı çıktı: biri Windows NT 4.0 uyumlu zayıf şifreleme algoritmalarının varsayılan olarak kapalı olduğunu söylüyor (bu iyi bir şey, dokunmadım), diğeri ağ arayüzünde sabit IP olmadığından şikâyet ediyor. İkincisi Azure'da beklenen bir uyarı — bulutta IP adresi işletim sistemi içinden değil, Azure NIC ayarlarından sabitleniyor.
+
+![AD DS ön koşul kontrolü](screenshots/03-ad-ds-prerequisites-check.png)
+
+**DC01 kurulum sonrası.** AD DS, DNS ve File and Storage Services rolleri ayakta; sunucu artık `corp.local` domain controller'ı.
+
+![Server Manager — AD DS ve DNS kurulu](screenshots/04-ad-ds-dns-kurulu-dashboard.png)
+
+**CLIENT01 domain katılımının doğrulanması.** Arayüzdeki "hoş geldiniz" mesajına güvenmek yerine güven ilişkisini komutla test ettim:
+
+![Test-ComputerSecureChannel True](screenshots/08-securechannel-true-dogrulama.png)
+
 ## Karşılaşılan hatalar
 
-Kurulum sürecinde 8 ayrı gerçek hatayla karşılaştım — mimari uyumsuzluktan yanlış rol kurulumuna, yanlış yorumlanan arayüz mesajlarından, süreç boyunca not tutmak için kullandığım yapay zekâ asistanının kendi kendine yaptığı yanlış bir çıkarıma kadar:
+Kurulum sürecinde 9 ayrı gerçek hatayla karşılaştım — mimari uyumsuzluktan yanlış rol kurulumuna, yanlış yorumlanan arayüz mesajlarından, süreç boyunca not tutmak için kullandığım yapay zekâ asistanının kendi kendine yaptığı yanlış bir çıkarıma kadar. Hepsi ekran görüntüleriyle birlikte burada:
 
 👉 **[ERRORS.md — Karşılaştığım Hatalar](ERRORS.md)**
 
-En öğretici ikisi (7. ve 8.): ikisi de "sistem bana başarılı olduğunu söyledi ama aslında değildi" temasını paylaşıyor — biri notlarımı tutan yapay zekâ asistanının doğrulamadan yaptığı bir çıkarım, diğeri Windows'un kendisinin yanıltıcı bir arayüz mesajıydı. İkisinde de gerçek durumu ancak canlı sistemde doğrulayarak (screenshot, `Get-ADDomain`, `Test-ComputerSecureChannel -Verbose`) teyit edebildim.
-
-## Ekran görüntüleri
-
-*(Yakında eklenecek: ping testi, domain join doğrulaması, Server Manager rol listesi)*
+En öğretici ikisi (7. ve 8.): ikisi de "sistem bana başarılı olduğunu söyledi ama aslında değildi" temasını paylaşıyor — biri notlarımı tutan yapay zekâ asistanının doğrulamadan yaptığı bir çıkarım, diğeri Windows'un kendisinin yanıltıcı bir arayüz mesajıydı. İkisinde de gerçek durumu ancak canlı sistemde doğrulayarak (`Get-ADDomain`, `Test-ComputerSecureChannel -Verbose`) teyit edebildim.
 
 ## İletişim
 
