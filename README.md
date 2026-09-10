@@ -4,7 +4,7 @@
 
 ---
 
-## 🇹🇷 Bu lab ne kanıtlıyor?
+## Bu lab ne kanıtlıyor?
 
 Bu repo, gerçek bir BT destek / sistem yönetimi ortamının küçük ölçekli bir simülasyonu: bulutta bir domain controller, yerelde domain'e katılmış bir istemci, aralarında güvenli (public RDP'siz) bir bağlantı ve bunları kurarken karşılaşılan gerçek hataların adım adım kaydı.
 
