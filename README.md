@@ -72,6 +72,20 @@ Kurulum sürecinde 9 ayrı gerçek hatayla karşılaştım — mimari uyumsuzluk
 
 En öğretici ikisi (7. ve 8.): ikisi de "sistem bana başarılı olduğunu söyledi ama aslında değildi" temasını paylaşıyor — biri notlarımı tutan yapay zekâ asistanının doğrulamadan yaptığı bir çıkarım, diğeri Windows'un kendisinin yanıltıcı bir arayüz mesajıydı. İkisinde de gerçek durumu ancak canlı sistemde doğrulayarak (`Get-ADDomain`, `Test-ComputerSecureChannel -Verbose`) teyit edebildim.
 
+## OU, gruplar ve yetki devri
+
+Lab ayakta olduktan sonra AD'yi biraz daha gerçekçi hale getirdim: bir OU ağacı (Departmanlar / Bilgisayarlar / Servis Hesapları), 5 departman grubu (IT, Satış, Muhasebe, İK, Pazarlama) ve bir Helpdesk grubu kurdum. Helpdesk grubuna Domain Admin yetkisi vermeden, sadece Departmanlar OU'sunda **parola sıfırlama** yetkisini devrettim (Delegation of Control Wizard) — gerçek bir helpdesk'in günlük işi genelde budur, Domain Admin olmadan bu işi yapabilmek.
+
+![Departman grupları GUI'de doğrulandı](screenshots/09-departman-gruplari-gui-dogrulama.png)
+
+20 kullanıcıyı toplu olarak PowerShell'le açtım (script ve CSV [powershell-itops-toolkit](https://github.com/erencatak/powershell-itops-toolkit) reposunda), 21. kişiyi ise bilerek GUI'den elle açtım — script'in yaptığı işi elle de yapabildiğimi görmek için:
+
+![21. kullanıcıyı GUI'den açma](screenshots/10-kullanici21-gui-formu.png)
+
+![Toplam 21 kullanıcı doğrulandı](screenshots/11-kullanici21-toplam-dogrulama.png)
+
+Bu işin prosedürünü (yeni çalışan geldiğinde ne yapılıyor) [RUNBOOK-01-yeni-calisan.md](RUNBOOK-01-yeni-calisan.md) dosyasına yazdım — ilk hali, zamanla üstüne eklerim.
+
 ## İletişim
 
 Eren Çatak — [LinkedIn](https://www.linkedin.com/in/eren-%C3%A7atak-7539b5222)
