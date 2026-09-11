@@ -78,7 +78,7 @@ Lab ayakta olduktan sonra AD'yi biraz daha gerçekçi hale getirdim: bir OU ağa
 
 ![Departman grupları GUI'de doğrulandı](screenshots/09-departman-gruplari-gui-dogrulama.png)
 
-20 kullanıcıyı toplu olarak PowerShell'le açtım (script ve CSV [powershell-itops-toolkit](https://github.com/erencatak/powershell-itops-toolkit) reposunda), 21. kişiyi ise bilerek GUI'den elle açtım — script'in yaptığı işi elle de yapabildiğimi görmek için:
+20 kullanıcıyı toplu olarak PowerShell'le açtım (script ve CSV [powershell-itops-toolkit](https://github.com/erencatak/powershell-itops-toolkit) reposunda), 21. kişiyi ise bilerek GUI'den elle açtım :
 
 ![21. kullanıcıyı GUI'den açma](screenshots/10-kullanici21-gui-formu.png)
 
