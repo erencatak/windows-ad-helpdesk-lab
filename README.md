@@ -1,6 +1,6 @@
 # Windows AD Helpdesk Lab
 
-> **EN summary:** A hybrid Active Directory lab built to practice real IT helpdesk / sysadmin troubleshooting. A Domain Controller runs in Azure (Windows Server 2022), and a domain-joined Windows 11 client runs locally in VirtualBox on Apple Silicon — connected over a Tailscale mesh VPN instead of exposing RDP to the public internet. The most valuable part of this repo isn't that everything worked — it's [ERRORS.md](ERRORS.md): 9 real problems I hit, how I diagnosed each one, and what actually fixed it.
+> **EN summary:** A hybrid Active Directory lab built to practice real IT helpdesk / sysadmin troubleshooting. A Domain Controller runs in Azure (Windows Server 2022), and a domain-joined Windows 11 client runs locally in VirtualBox on Apple Silicon — connected over a Tailscale mesh VPN instead of exposing RDP to the public internet. The most valuable part of this repo isn't that everything worked — it's [ERRORS.md](ERRORS.md): 11 real problems I hit, how I diagnosed each one, and what actually fixed it.
 
 ---
 
@@ -51,6 +51,7 @@ flowchart LR
 5. CLIENT01, `corp.local` domain'ine katıldı ve `Test-ComputerSecureChannel -Verbose` ile kriptografik olarak doğrulandı (`True`)
 6. Geçici RDP/NSG kuralları kaldırıldı, tüm erişim Tailscale üzerinden sağlandı
 7. DC01'e DHCP Server rolü kuruldu, Active Directory'de yetkilendirildi ve 172.16.0.0/24 ağı için bir kapsam (scope) tanımlandı
+8. DC01'de bir reverse lookup zone (PTR kayıtları) kuruldu, forwarder yapılandırması doğrulandı ve CLIENT01 üzerinde kasıtlı bir DNS arızası test edilerek gerçek bir isim çözümleme sorunu teşhis edildi
 
 ## Kurulum 
 
@@ -68,7 +69,7 @@ flowchart LR
 
 ## Karşılaşılan hatalar
 
-Kurulum sürecinde 9 ayrı gerçek hatayla karşılaştım — mimari uyumsuzluktan yanlış rol kurulumuna, yanlış yorumlanan arayüz mesajlarından, süreç boyunca not tutmak için kullandığım yapay zekâ asistanının kendi kendine yaptığı yanlış bir çıkarıma kadar. Hepsi ekran görüntüleriyle birlikte burada:
+Kurulum sürecinde 11 ayrı gerçek hatayla karşılaştım — mimari uyumsuzluktan yanlış rol kurulumuna, yanlış yorumlanan arayüz mesajlarından, yanlış makinede yapılan bir DNS testine ve bir arızayı önbelleklenmiş bir bağlantının geçici olarak maskelemesine kadar. Hepsi ekran görüntüleriyle birlikte burada:
 
 👉 **[ERRORS.md — Karşılaştığım Hatalar](ERRORS.md)**
 
@@ -107,6 +108,16 @@ Kapsam şöyle oldu: 172.16.0.100 – 172.16.0.200 aralığı, maske 255.255.255
 ![Kapsam aktif durumda](screenshots/15-dhcp-scope-active.png)
 
 Kapsamı istemci tarafında denemedim, çünkü bu lab'da CLIENT01 aynı yerel ağda değil — DC01'e Tailscale üzerinden bağlanıyor. DHCP istemcisi henüz IP'si olmadığı için sunucuyu yerel ağa attığı yayın (broadcast) mesajıyla arıyor, o mesaj da VPN'in diğer ucuna geçmiyor. Farklı ağdaki istemcilerin aynı DHCP sunucusundan adres alabilmesi için gerçek ortamlarda yönlendiricide DHCP Relay (`ip helper-address`) kullanılıyor.
+
+## DNS — PTR kaydı, forwarder ve bir arıza senaryosu
+
+DHCP'den sonra DNS'in eksik kalan tarafına döndüm: şu ana kadar sadece ileri yönlü çözümleme (isimden IP'ye) vardı, ters yönlü (IP'den isme) hiç yoktu.
+
+DNS Manager'da DC01 için bir **reverse lookup zone** oluşturdum (`0.16.172.in-addr.arpa`, AD-entegre, sadece güvenli dinamik güncellemeye izin veren). Kendi PTR kaydımın otomatik gelmesini bekledim (`ipconfig /registerdns` ile tetikledim) ama gelmedi — elle eklemem gerekti: `172.16.0.4 → dc01.corp.local`.
+
+Sonra DC01'in **forwarder** yapılandırmasına baktım — bu, `corp.local` dışındaki isimleri (örn. `google.com`) kime soracağını belirliyor. Beklediğimin aksine liste boş değildi: `168.63.129.16`, Azure'un her VM'e otomatik eklediği platform DNS adresi zaten oradaydı. Yani dış dünya çözümlemesi başından beri çalışıyormuş, ben hiç fark etmemişim.
+
+Son olarak gerçek bir DNS arızası kurup teşhis ettim: CLIENT01'in DNS'ini genel bir sunucuya (8.8.8.8) çevirdim ve `corp.local`'in artık çözülemediğini doğruladım (`nslookup dc01.corp.local` → "Non-existent domain"). Bunu yaparken iki ayrı gerçek hataya düştüm — biri yanlış makinede yapılan bir değişiklik, diğeri bir arızanın önbelleklenmiş bir bağlantı yüzünden geçici olarak maskelenmesi. İkisi de tüm teşhis süreciyle birlikte [ERRORS.md](ERRORS.md)'de (10. ve 11. maddeler).
 
 ## İletişim
 

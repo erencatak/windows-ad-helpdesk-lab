@@ -99,6 +99,26 @@ Azure'da kendi IP'me özel, geçici bir RDP kuralı oluşturuyordum. Formu doldu
 
 Bu kural zaten geçiciydi; Tailscale düzgün çalışmaya başladıktan sonra sildim, DC01'e artık dışarıdan açık hiçbir yönetim portu yok.
 
+### 10. CLIENT01'i değil DC01'i bozdum: yanlış makinede DNS testi
+
+DNS'in nasıl çalıştığını göstermek için kasıtlı bir arıza kuracaktım: CLIENT01'in DNS'ini genel bir sunucuya (8.8.8.8) çevirip `corp.local` gibi özel bir alan adını çözemediğini göstermek. Planı doğruydu, ama ayarı yanlış makinede değiştirdim — CLIENT01 yerine **DC01'in kendi DNS ayarını** 8.8.8.8 yaptım.
+
+Bunu hemen fark etmedim; fark ettiren şey ekrandaki bir ayrıntıydı. Ayar penceresinde adaptör ismi "Microsoft Hyper-V Network Adapter" yazıyordu — bu, Azure VM'lerin (yani DC01'in) tipik ağ kartı ismi. CLIENT01 benim Mac'imde VirtualBox'ta çalışıyor, onun adaptörü farklı bir isimle görünür. İki pencere zihinsel olarak karışmış, elim yanlış makineye gitmiş.
+
+Bunun neden riskli olduğunu sonradan düşününce anladım: DC01 kendi kendinin DNS sunucusu. Kendi DNS'ini 8.8.8.8 yaparsan, DC01 **kendi domain'ini** çözemez hale gelebilir — AD replikasyonu ve iç doğrulama işlemleri buna dayanıyor. Orijinal değeri (127.0.0.1) hafızamdan doğrulayıp geri yazdım.
+
+Bu arada öğrendiğim ayrım işe yaradı: bir DNS sunucusunda **NIC'teki "Preferred DNS" ayarı** (sunucunun kendi sorguları için kullandığı) ile **DNS rolünün "Forwarders" sekmesi** (dışarıdan gelen sorgulara cevap verirken kullandığı) birbirinden bağımsız. Yani CLIENT01'in sorguları bu hatadan hiç etkilenmemişti — risk sadece DC01'in kendi iç işlemlerindeydi.
+
+### 11. DNS'i bozdum ama SYSVOL'e erişim bir türlü kesilmedi
+
+CLIENT01'in DNS'ini bozup `corp.local`'i çözemediğini gösterdikten sonra, gerçek bir şirket kaynağına erişimin de kesilip kesilmediğini merak ettim — SYSVOL paylaşımına (`\\dc01.corp.local\SYSVOL`, her domain controller'da hazır gelen bir klasör) gitmeyi denedim. `nslookup` zaten çalışmadığına göre bu da çalışmamalıydı. Ama tam tersi oldu, klasör sorunsuz açıldı.
+
+Önce DNS önbelleği aklıma geldi, `ipconfig /flushdns` ile temizledim, değişen bir şey olmadı. Sonra Tailscale araya özel bir kural mı koyuyor diye baktım (`Get-DnsClientNrptPolicy`), öyle bir şey çıkmadı. `Resolve-DnsName` ile bir daha denedim, o da başarısız verdi — yani DNS gerçekten bozuktu, ben yanlış yerde arıyordum.
+
+Sebep aklıma biraz geç geldi: CLIENT01 domain'e katılmış bir makine, girişte otomatik olarak SYSVOL/NETLOGON'a bağlanıyor, ve bu bağlantı DNS daha bozulmadan önce zaten kurulmuştu — açık kalmaya devam ediyordu, DNS önbelleğinden tamamen ayrı bir katmanda. Doğrulamak için CLIENT01'i yeniden başlattım, bu sefer o bağlantı da sıfırlanınca `dir` gerçekten başarısız oldu.
+
+Çıkardığım ders: DNS önbelleği ile ağ bağlantı önbelleği ayrı katmanlar, biri diğerini temizlemiyor. "DNS'i düzelttim ama hâlâ çalışmıyor" ya da tam tersi şikayetlerin sebebi genelde bu.
+
 ---
 
 *Bu dosya proje ilerledikçe güncellenmeye devam edecek.*
