@@ -1,6 +1,6 @@
 # Windows AD Helpdesk Lab
 
-> **EN summary:** A hybrid Active Directory lab built to practice real IT helpdesk / sysadmin troubleshooting. A Domain Controller runs in Azure (Windows Server 2022), and a domain-joined Windows 11 client runs locally in VirtualBox on Apple Silicon — connected over a Tailscale mesh VPN instead of exposing RDP to the public internet. The most valuable part of this repo isn't that everything worked — it's [ERRORS.md](ERRORS.md): 10 real problems I hit, how I diagnosed each one, and what actually fixed it.
+> **EN summary:** A hybrid Active Directory lab built to practice real IT helpdesk / sysadmin troubleshooting. A Domain Controller runs in Azure (Windows Server 2022), and a domain-joined Windows 11 client runs locally in VirtualBox on Apple Silicon — connected over a Tailscale mesh VPN instead of exposing RDP to the public internet. The most valuable part of this repo isn't that everything worked — it's [ERRORS.md](ERRORS.md): 8 real problems I hit, how I diagnosed each one, and what actually fixed it.
 
 ---
 
@@ -106,7 +106,7 @@ Kapsam şöyle oldu: 172.16.0.100 – 172.16.0.200 aralığı, maske 255.255.255
 
 ![Kapsam aktif durumda](screenshots/15-dhcp-scope-active.png)
 
-Bir de dürüst bir not: kapsam ayakta ve aktif, ama CLIENT01 buradan IP alamıyor. Sebebi basit — CLIENT01 fiziksel olarak bu ağda değil, DC01'e Tailscale üzerinden bağlanıyor. DHCP, istemcinin yerel ağa attığı yayın (broadcast) mesajıyla çalışıyor ve o mesaj VPN'in diğer ucuna geçmiyor. Gerçek ortamlarda bunun çözümü yönlendiricideki DHCP Relay. Bu lab'ın mimarisi buna uygun olmadığı için kapsamı kurup doğrulamakla bıraktım; ayrıntısını [ERRORS.md](ERRORS.md) dosyasındaki 10. maddeye yazdım.
+Kapsamı istemci tarafında denemedim, çünkü bu lab'da CLIENT01 aynı yerel ağda değil — DC01'e Tailscale üzerinden bağlanıyor. DHCP istemcisi henüz IP'si olmadığı için sunucuyu yerel ağa attığı yayın (broadcast) mesajıyla arıyor, o mesaj da VPN'in diğer ucuna geçmiyor. Farklı ağdaki istemcilerin aynı DHCP sunucusundan adres alabilmesi için gerçek ortamlarda yönlendiricide DHCP Relay (`ip helper-address`) kullanılıyor.
 
 ## İletişim
 
