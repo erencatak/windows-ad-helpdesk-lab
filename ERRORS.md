@@ -99,7 +99,7 @@ Azure'da kendi IP'me özel, geçici bir RDP kuralı oluşturuyordum. Formu doldu
 
 Bu kural zaten geçiciydi; Tailscale düzgün çalışmaya başladıktan sonra sildim, DC01'e artık dışarıdan açık hiçbir yönetim portu yok.
 
-### 10. CLIENT01'i değil DC01'i bozdum: yanlış makinede DNS testi
+### 10. CLIENT01'i değil DC01'i DNS'ini değiştirdim : yanlış makinede DNS testi
 
 DNS'in nasıl çalıştığını göstermek için kasıtlı bir arıza kuracaktım: CLIENT01'in DNS'ini genel bir sunucuya (8.8.8.8) çevirip `corp.local` gibi özel bir alan adını çözemediğini göstermek. Planı doğruydu, ama ayarı yanlış makinede değiştirdim — CLIENT01 yerine **DC01'in kendi DNS ayarını** 8.8.8.8 yaptım.
 
@@ -109,9 +109,9 @@ Bunun neden riskli olduğunu sonradan düşününce anladım: DC01 kendi kendini
 
 Bu arada öğrendiğim ayrım işe yaradı: bir DNS sunucusunda **NIC'teki "Preferred DNS" ayarı** (sunucunun kendi sorguları için kullandığı) ile **DNS rolünün "Forwarders" sekmesi** (dışarıdan gelen sorgulara cevap verirken kullandığı) birbirinden bağımsız. Yani CLIENT01'in sorguları bu hatadan hiç etkilenmemişti — risk sadece DC01'in kendi iç işlemlerindeydi.
 
-### 11. DNS'i bozdum ama SYSVOL'e erişim bir türlü kesilmedi
+### 11. DNS'i bilinçli olarak değiştirdim ama SYSVOL'a erişimi kesilmedi
 
-CLIENT01'in DNS'ini bozup `corp.local`'i çözemediğini gösterdikten sonra, gerçek bir şirket kaynağına erişimin de kesilip kesilmediğini merak ettim — SYSVOL paylaşımına (`\\dc01.corp.local\SYSVOL`, her domain controller'da hazır gelen bir klasör) gitmeyi denedim. `nslookup` zaten çalışmadığına göre bu da çalışmamalıydı. Ama tam tersi oldu, klasör sorunsuz açıldı.
+CLIENT01'in DNS'ini değiştirip `corp.local`'i çözemediğini gösterdikten sonra, gerçek bir şirket kaynağına erişimin de kesilip kesilmediğini merak ettim — SYSVOL paylaşımına (`\\dc01.corp.local\SYSVOL`, her domain controller'da hazır gelen bir klasör) gitmeyi denedim. `nslookup` zaten çalışmadığına göre bu da çalışmamalıydı. Ama tam tersi oldu, klasör sorunsuz açıldı.
 
 Önce DNS önbelleği aklıma geldi, `ipconfig /flushdns` ile temizledim, değişen bir şey olmadı. Sonra Tailscale araya özel bir kural mı koyuyor diye baktım (`Get-DnsClientNrptPolicy`), öyle bir şey çıkmadı. `Resolve-DnsName` ile bir daha denedim, o da başarısız verdi — yani DNS gerçekten bozuktu, ben yanlış yerde arıyordum.
 
