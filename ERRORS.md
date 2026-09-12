@@ -99,6 +99,20 @@ Azure'da kendi IP'me özel, geçici bir RDP kuralı oluşturuyordum. Formu doldu
 
 Bu kural zaten geçiciydi; Tailscale düzgün çalışmaya başladıktan sonra sildim, DC01'e artık dışarıdan açık hiçbir yönetim portu yok.
 
+### 10. DHCP ayakta görünüyordu ama tek bir IP bile dağıtmadı
+
+DHCP Server rolünü kurar kurmaz Server Manager'ın olay listesine arka arkaya hatalar düştü: 1041, 1046 ve 1059 numaralı DHCP hataları.
+
+![Yetkilendirme öncesi düşen DHCP hataları](screenshots/16-dhcp-yetkilendirme-oncesi-hatalar.png)
+
+İlk bakışta kurulum bozuldu sandım. Hepsi aslında aynı şeyi söylüyormuş: servis ayağa kalkmış ama Active Directory'de yetkilendirilmediği için istemcilere hizmet vermeyi reddediyor. Domain ortamında bir DHCP sunucusu AD'de kayıtlı değilse kendini durduruyor; bu, ağa birinin izinsiz DHCP sunucusu takmasını (rogue DHCP) engellemek için var. "Complete DHCP configuration" adımını çalıştırıp yetkilendirmeyi verdikten ve servisi yeniden başlattıktan sonra yeni hata düşmedi — listedeki kayıtların hepsinin yetkilendirmeden önceki saatlere ait olduğunu da böyle fark ettim.
+
+İkinci mesele daha temeldi. Kapsamı kurup aktif ettikten sonra CLIENT01'in dağıttığım aralıktan bir adres almasını bekliyordum, almadı. Sebebi şu: DHCP istemcisinin henüz bir IP'si olmadığı için sunucuyu adresiyle arayamıyor, yerel ağa "burada DHCP sunucusu var mı" diye yayın (broadcast) yapıyor. CLIENT01 ise Azure'daki 172.16.0.0/24 ağında değil, benim bilgisayarımda çalışıyor ve DC01'e Tailscale üzerinden bağlanıyor. VPN bu yayın trafiğini taşımadığı için istek sunucuya hiç ulaşmıyor.
+
+Bunun kurumsal karşılığı da aynı: farklı bir ağdaki istemciler DHCP sunucusuna doğrudan ulaşamaz, arada yönlendiricide bir DHCP Relay Agent (Cisco tarafında `ip helper-address`) olması gerekir. Relay, yayın olarak gelen isteği alıp sunucuya tek hedefli (unicast) olarak iletiyor. Lab'ın mimarisi buna uygun olmadığı için kapsamı kurup doğrulamakla yetindim, istemci tarafını zorlamadım.
+
+Buradan aklımda kalan: "servis çalışıyor" ile "servis iş görüyor" aynı şey değil. DHCP'de bunun iki ayrı şartı varmış — AD'de yetkilendirilmiş olmak, ve istemciyle aynı yayın alanında olmak (ya da arada bir relay bulunmak).
+
 ---
 
 *Bu dosya proje ilerledikçe güncellenmeye devam edecek.*

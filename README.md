@@ -1,6 +1,6 @@
 # Windows AD Helpdesk Lab
 
-> **EN summary:** A hybrid Active Directory lab built to practice real IT helpdesk / sysadmin troubleshooting. A Domain Controller runs in Azure (Windows Server 2022), and a domain-joined Windows 11 client runs locally in VirtualBox on Apple Silicon — connected over a Tailscale mesh VPN instead of exposing RDP to the public internet. The most valuable part of this repo isn't that everything worked — it's [ERRORS.md](ERRORS.md): 8 real problems I hit, how I diagnosed each one, and what actually fixed it.
+> **EN summary:** A hybrid Active Directory lab built to practice real IT helpdesk / sysadmin troubleshooting. A Domain Controller runs in Azure (Windows Server 2022), and a domain-joined Windows 11 client runs locally in VirtualBox on Apple Silicon — connected over a Tailscale mesh VPN instead of exposing RDP to the public internet. The most valuable part of this repo isn't that everything worked — it's [ERRORS.md](ERRORS.md): 10 real problems I hit, how I diagnosed each one, and what actually fixed it.
 
 ---
 
@@ -38,6 +38,7 @@ flowchart LR
 | Domain Controller | Windows Server 2022 Datacenter, Azure (D2s_v6) |
 | İstemci | Windows 11 ARM64, VirtualBox 7.2+ (yerel) |
 | Dizin servisi | Active Directory Domain Services (AD DS), DNS Server |
+| Adres dağıtımı | DHCP Server (172.16.0.0/24 kapsamı) |
 | Ağ | Tailscale (WireGuard mesh VPN) — public RDP kapalı |
 | Domain | `corp.local` |
 
@@ -49,6 +50,7 @@ flowchart LR
 4. DC01'de AD DS rolü kuruldu, `corp.local` ormanı oluşturuldu, DC01 domain controller'a yükseltildi
 5. CLIENT01, `corp.local` domain'ine katıldı ve `Test-ComputerSecureChannel -Verbose` ile kriptografik olarak doğrulandı (`True`)
 6. Geçici RDP/NSG kuralları kaldırıldı, tüm erişim Tailscale üzerinden sağlandı
+7. DC01'e DHCP Server rolü kuruldu, Active Directory'de yetkilendirildi ve 172.16.0.0/24 ağı için bir kapsam (scope) tanımlandı
 
 ## Kurulum 
 
@@ -85,6 +87,26 @@ Lab ayakta olduktan sonra AD'yi biraz daha gerçekçi hale getirdim: bir OU ağa
 ![Toplam 21 kullanıcı doğrulandı](screenshots/11-kullanici21-toplam-dogrulama.png)
 
 Bu işin prosedürünü (yeni çalışan geldiğinde ne yapılıyor) [RUNBOOK-01-yeni-calisan.md](RUNBOOK-01-yeni-calisan.md) dosyasına yazdım — ilk hali, zamanla üstüne eklerim.
+
+## DHCP — kullanıcı ağı için kapsam kurulumu
+
+Buraya kadar hem DC01'in hem CLIENT01'in IP'si sabitti. Gerçek ortamlarda kullanıcı bilgisayarlarına IP'yi tek tek elle vermek yerine DHCP dağıtıyor, ben de DC01'e DHCP Server rolünü kurdum.
+
+![DHCP Server rolü seçildi](screenshots/12-dhcp-rolu-secildi.png)
+
+Kurulum biter bitmez Server Manager'da sarı bir uyarı çıktı: "Complete DHCP configuration". Bu adım, DHCP sunucusunu Active Directory'de yetkilendirmek (authorize) için. Domain ortamında yetkilendirilmemiş bir DHCP sunucusu istemcilere IP dağıtmıyor — AD, ağa izinsiz takılan sahte DHCP sunucularını böyle engelliyor. Yetkilendirmeyi yapıp DHCP servisini yeniden başlattım:
+
+![DHCP sunucusu AD'de yetkilendirildi](screenshots/13-dhcp-authorization-tamamlandi.png)
+
+Kapsamı (scope) kurmadan önce sunucunun kendi ağına baktım. Burada dikkat ettiğim bir ayrıntı var: DC01'in iki arayüzü görünüyor. Azure'un Ethernet kartı 172.16.0.4, maskesi 255.255.255.0, gateway 172.16.0.1. Tailscale arayüzünün maskesi ise 255.255.255.255, yani nokta-nokta bir bağlantı — onun üstüne bir ağ kapsamı kurulamaz. Kapsamı bu yüzden Ethernet tarafındaki 172.16.0.0/24 ağı için oluşturdum.
+
+![DC01 ipconfig çıktısı](screenshots/14-ipconfig-subnet-dogrulama.png)
+
+Kapsam şöyle oldu: 172.16.0.100 – 172.16.0.200 aralığı, maske 255.255.255.0, gateway 172.16.0.1, DNS olarak DC01'in kendisi, kira süresi 8 gün (varsayılan). Sunucunun kendi adresi olan .4'ü ve baştaki adresleri bilerek aralığın dışında bıraktım — sabit IP'li cihazlara DHCP'nin dokunmaması gerekiyor.
+
+![Kapsam aktif durumda](screenshots/15-dhcp-scope-active.png)
+
+Bir de dürüst bir not: kapsam ayakta ve aktif, ama CLIENT01 buradan IP alamıyor. Sebebi basit — CLIENT01 fiziksel olarak bu ağda değil, DC01'e Tailscale üzerinden bağlanıyor. DHCP, istemcinin yerel ağa attığı yayın (broadcast) mesajıyla çalışıyor ve o mesaj VPN'in diğer ucuna geçmiyor. Gerçek ortamlarda bunun çözümü yönlendiricideki DHCP Relay. Bu lab'ın mimarisi buna uygun olmadığı için kapsamı kurup doğrulamakla bıraktım; ayrıntısını [ERRORS.md](ERRORS.md) dosyasındaki 10. maddeye yazdım.
 
 ## İletişim
 
