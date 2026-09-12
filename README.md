@@ -111,13 +111,21 @@ Kapsamı istemci tarafında denemedim, çünkü bu lab'da CLIENT01 aynı yerel a
 
 ## DNS — PTR kaydı, forwarder ve bir arıza senaryosu
 
-DHCP'den sonra DNS'in eksik kalan tarafına döndüm: şu ana kadar sadece ileri yönlü çözümleme (isimden IP'ye) vardı, ters yönlü (IP'den isme) hiç yoktu.
+DHCP'den sonra DNS'in eksik kalan tarafına baktım. O ana kadar sadece "bu isim hangi IP" sorusunu çözebiliyordum, tam tersini — "bu IP kime ait" — hiç kuramamıştım.
 
-DNS Manager'da DC01 için bir **reverse lookup zone** oluşturdum (`0.16.172.in-addr.arpa`, AD-entegre, sadece güvenli dinamik güncellemeye izin veren). Kendi PTR kaydımın otomatik gelmesini bekledim (`ipconfig /registerdns` ile tetikledim) ama gelmedi — elle eklemem gerekti: `172.16.0.4 → dc01.corp.local`.
+Bunun için DC01'de bir ters kayıt bölgesi (reverse zone) açtım. Kendi kaydımın kendiliğinden gelmesini bekledim ama gelmedi, elle eklemem gerekti: `172.16.0.4 → dc01.corp.local`.
 
-Sonra DC01'in **forwarder** yapılandırmasına baktım — bu, `corp.local` dışındaki isimleri (örn. `google.com`) kime soracağını belirliyor. Beklediğimin aksine liste boş değildi: `168.63.129.16`, Azure'un her VM'e otomatik eklediği platform DNS adresi zaten oradaydı. Yani dış dünya çözümlemesi başından beri çalışıyormuş, ben hiç fark etmemişim.
+![Forward ve Reverse zone, PTR kaydıyla birlikte](screenshots/25-gun6-forward-ve-reverse-ptr.png)
 
-Son olarak gerçek bir DNS arızası kurup teşhis ettim: CLIENT01'in DNS'ini genel bir sunucuya (8.8.8.8) çevirdim ve `corp.local`'in artık çözülemediğini doğruladım (`nslookup dc01.corp.local` → "Non-existent domain"). Bunu yaparken iki ayrı gerçek hataya düştüm — biri yanlış makinede yapılan bir değişiklik, diğeri bir arızanın önbelleklenmiş bir bağlantı yüzünden geçici olarak maskelenmesi. İkisi de tüm teşhis süreciyle birlikte [ERRORS.md](ERRORS.md)'de (10. ve 11. maddeler).
+Sonra DC01'in dışarıya (mesela `google.com` gibi isimlere) nasıl çözüm bulduğuna baktım. Meğer Azure bunu her makineye otomatik ekliyormuş — ben hiç fark etmeden zaten çalışıyormuş.
+
+![Forwarder listesi](screenshots/26-gun6-forwarder-listesi.png)
+
+En sonda kasıtlı bir arıza kurdum: CLIENT01'in DNS'ini genel bir adrese (8.8.8.8) çevirip `corp.local`'in artık çözülemediğini gösterdim.
+
+![nslookup ile arıza doğrulama](screenshots/27-gun6-nslookup-basarisiz.png)
+
+Bunu yaparken iki gerçek hataya da düştüm — biri yanlış makinede yapılan bir değişiklik, diğeri bir arızanın önbelleklenmiş bir bağlantı yüzünden bir süre fark edilmemesi. İkisi de [ERRORS.md](ERRORS.md)'de (10. ve 11. maddeler).
 
 ## İletişim
 

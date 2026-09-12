@@ -115,7 +115,9 @@ CLIENT01'in DNS'ini değiştirip `corp.local`'i çözemediğini gösterdikten so
 
 Önce DNS önbelleği aklıma geldi, `ipconfig /flushdns` ile temizledim, değişen bir şey olmadı. Sonra Tailscale araya özel bir kural mı koyuyor diye baktım (`Get-DnsClientNrptPolicy`), öyle bir şey çıkmadı. `Resolve-DnsName` ile bir daha denedim, o da başarısız verdi — yani DNS gerçekten bozuktu, ben yanlış yerde arıyordum.
 
-Sebep aklıma biraz geç geldi: CLIENT01 domain'e katılmış bir makine, girişte otomatik olarak SYSVOL/NETLOGON'a bağlanıyor, ve bu bağlantı DNS daha bozulmadan önce zaten kurulmuştu — açık kalmaya devam ediyordu, DNS önbelleğinden tamamen ayrı bir katmanda. Doğrulamak için CLIENT01'i yeniden başlattım, bu sefer o bağlantı da sıfırlanınca `dir` gerçekten başarısız oldu.
+Sebep aklıma biraz geç geldi: CLIENT01 domain'e katılmış bir makine, girişte otomatik olarak SYSVOL/NETLOGON'a bağlanıyor, ve bu bağlantı DNS daha bozulmadan önce zaten kurulmuştu — açık kalmaya devam ediyordu, DNS önbelleğinden tamamen ayrı bir katmanda. Doğrulamak için CLIENT01'i yeniden başlattım, bu sefer o bağlantı da sıfırlanınca `dir` gerçekten başarısız oldu:
+
+![Reboot sonrası erişim gerçekten kesildi](screenshots/28-gun6-sysvol-erisim-kesildi.png)
 
 Çıkardığım ders: DNS önbelleği ile ağ bağlantı önbelleği ayrı katmanlar, biri diğerini temizlemiyor. "DNS'i düzelttim ama hâlâ çalışmıyor" ya da tam tersi şikayetlerin sebebi genelde bu.
 
