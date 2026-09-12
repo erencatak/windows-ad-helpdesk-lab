@@ -1,6 +1,6 @@
 # Windows AD Helpdesk Lab
 
-> **EN summary:** A hybrid Active Directory lab built to practice real IT helpdesk / sysadmin troubleshooting. A Domain Controller runs in Azure (Windows Server 2022), and a domain-joined Windows 11 client runs locally in VirtualBox on Apple Silicon — connected over a Tailscale mesh VPN instead of exposing RDP to the public internet. The most valuable part of this repo isn't that everything worked — it's [ERRORS.md](ERRORS.md): 8 real problems I hit, how I diagnosed each one, and what actually fixed it.
+> **EN summary:** A hybrid Active Directory lab built to practice real IT helpdesk / sysadmin troubleshooting. A Domain Controller runs in Azure (Windows Server 2022), and a domain-joined Windows 11 client runs locally in VirtualBox on Apple Silicon — connected over a Tailscale mesh VPN instead of exposing RDP to the public internet. The most valuable part of this repo isn't that everything worked — it's [ERRORS.md](ERRORS.md): 9 real problems I hit, how I diagnosed each one, and what actually fixed it.
 
 ---
 
