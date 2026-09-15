@@ -129,4 +129,4 @@ Bunu yaparken iki gerçek hataya da düştüm — biri yanlış makinede yapıla
 
 ## İletişim
 
-Eren Çatak — [LinkedIn](https://www.linkedin.com/in/eren-%C3%A7atak-7539b5222)
+Eren Çatak — [LinkedIn](https://www.linkedin.com/in/erencatak/)
