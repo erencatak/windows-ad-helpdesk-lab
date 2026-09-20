@@ -127,6 +127,8 @@ En sonda kasıtlı bir arıza kurdum: CLIENT01'in DNS'ini genel bir adrese (8.8.
 
 Bunu yaparken iki gerçek hataya da düştüm — biri yanlış makinede yapılan bir değişiklik, diğeri bir arızanın önbelleklenmiş bir bağlantı yüzünden bir süre fark edilmemesi. İkisi de [ERRORS.md](ERRORS.md)'de (10. ve 11. maddeler).
 
+Bu DNS arızalarını (yanlış DNS, bozuk forwarder, önbellekte kalan bağlantı) tek bir teşhis sırasına döktüm: [RUNBOOK-02-dns-sorun-giderme.md](RUNBOOK-02-dns-sorun-giderme.md) — ilk hali.
+
 ## İletişim
 
 Eren Çatak — [LinkedIn](https://www.linkedin.com/in/erencatak/)
