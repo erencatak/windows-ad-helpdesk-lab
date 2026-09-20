@@ -12,7 +12,7 @@ Biri "sunucuya / paylaşıma erişemiyorum" ya da "internet açılmıyor, adres 
 2. İç isim: `nslookup dc01.corp.local 100.85.93.7`
 3. Dış isim: `nslookup microsoft.com 100.85.93.7`
 
-Sunucuyu (100.85.93.7) her seferinde açıkça yazmam gerekiyor . Yazmazsam CLIENT01'de nslookup varsayılan olarak Tailscale'in MagicDNS'ine (100.100.100.100) sorması beklenecek , DC'ye sormasını beklemeyiz değil. Bu yüzden çıktıdaki `Server:` satırına bakmamız gerekiyor .
+Sunucuyu (100.85.93.7) her seferinde açıkça yazmam gerekiyor . Yazmazsam CLIENT01'de nslookup varsayılan olarak Tailscale'in MagicDNS'ine (100.100.100.100) soruyor, DC'ye değil. Bu yüzden çıktıdaki `Server:` satırına bakmamız gerekiyor .
 
 Sonuca göre 3 yoldan biri:
 
@@ -33,20 +33,19 @@ Sebep: DC01'in forwarder ayarı.
 Nereye bakıyorum: `dnsmgmt.msc` > DC01 sağ tık > Properties > Forwarders
 
 - Adresler yeşil tikli mi? Azure 168.63.129.16'yı kendiliğinden ekliyor zaten bir değişiklik yapmanıza gerek yok . Fakat Azure kullanmıyorsanız eklemeniz gerekebilir . 
+
+  ![Silmeden önce forwarder listesi](screenshots/29-gun6-forwarder-listesi-silmeden-once.png)
+  *Silmeden önce: Azure'un 168.63.129.16 adresi yeşil, fec0 satırları kırmızı ama zararsız.*
+
 - Labda ulaşılamayan bir forwarder (192.0.2.1) yazıp "Use root hints if no forwarders are available" kutusunu kaldırınca dış isimler timeout verdi.
+
+  ![Ulaşılamayan forwarder ve root hints kapalı](screenshots/31-gun6-olu-forwarder-root-hints-kapali.png)
+  *192.0.2.1 (ulaşılamayan bir adres) yazdım, "Use root hints" kutusunu da kapattım.*
+
 - Forwarder'ı tamamen silince de ilk denemede 2 saniyelik nslookup zaman aşımına düştü. Süreyi uzatınca (`nslookup -timeout=10 microsoft.com 100.85.93.7`) çözdü. Yani 2 saniyede cevap gelmemesi "bozuk" demek değildir yavaş da olabilir .
 
-![Silmeden önce forwarder listesi](screenshots/29-gun6-forwarder-listesi-silmeden-once.png)
-*Silmeden önce: Azure'un 168.63.129.16 adresi yeşil, fec0 satırları kırmızı ama zararsız.*
-
-![Forwarder silindikten sonra timeout](screenshots/30-gun6-forwarder-silindi-nslookup-timeout.png)
-*Forwarder'lar silindikten sonra CLIENT01'de aynı sorgu 2 saniyede cevap alamadı (üstte silmeden önceki çalışan hali de görünüyor).*
-
-![Ulaşılamayan forwarder ve root hints kapalı](screenshots/31-gun6-olu-forwarder-root-hints-kapali.png)
-*192.0.2.1 (ulaşılamayan bir adres) yazdım, "Use root hints" kutusu kapalı.*
-
-![Bu haldeyken nslookup timeout](screenshots/32-gun6-olu-forwarder-nslookup-timeout.png)
-*Bu haldeyken dış isim çözülmüyor.*
+  ![Forwarder silindikten sonra timeout](screenshots/30-gun6-forwarder-silindi-nslookup-timeout.png)
+  *Forwarder'lar silindikten sonra aynı sorgu 2 saniyede cevap alamadı (üstte silmeden önceki çalışan hali de görünüyor).*
 
 Çözüm:
 1. Forwarder'ı doğru yaz (168.63.129.16), "Use root hints" kutusunu işaretle
@@ -82,8 +81,8 @@ nslookup microsoft.com 100.85.93.7
 ```
 İkisi de cevap vermeli.
 
-![Geri aldıktan sonra kontrol](screenshots/33-gun6-geri-alma-dogrulama.png)
-*Üstteki hata, komutta boşluk unuttuğum için: nslookup varsayılan olarak MagicDNS'e sormuş. Altta doğru komutlarla `dc01.corp.local` ve `microsoft.com` cevap veriyor.*
+![Düzelttikten sonra kontrol](screenshots/32-gun6-geri-alma-dogrulama.png)
+*Düzelttikten sonra iki komut da cevap veriyor. En üstteki timeout satırı, nslookup'ın sunucunun kendi adını (PTR) sorgulamasından geliyor, cevabı etkilemiyor.*
 
 ---
 
